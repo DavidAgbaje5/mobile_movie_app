@@ -1,29 +1,58 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
+// app/_layout.tsx (Your Original Version)
+import './globals.css'; // Make sure this file exists in your project or remove if not needed
+import { Slot, useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { StatusBar } from 'react-native';
+import { useAuth, AuthProvider } from '@/context/AuthContext'; // Your original import path
 
-import { useColorScheme } from '@/hooks/useColorScheme';
+
+
+
+function MainLayout() {
+    const { isAuthenticated } = useAuth();
+    const router = useRouter();
+    const [ready, setReady] = useState(false);
+
+
+
+
+    useEffect(() => {
+        setReady(true);
+    }, []);
+
+
+
+
+    useEffect(() => {
+        if (ready && !isAuthenticated) {
+            router.replace('./(auth)/signUp'); // Navigates to signUp if not authenticated
+        }
+        // Note: This version didn't have logic to redirect to '/(tabs)' if isAuthenticated was true
+    }, [ready, isAuthenticated]);
+
+
+
+
+    if (!ready) return null;
+
+
+
+
+    return (
+        <>
+            <StatusBar barStyle="light-content" />
+            <Slot />
+        </>
+    );
+}
+
+
+
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
-
-  if (!loaded) {
-    // Async font loading only occurs in development.
-    return null;
-  }
-
-  return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
-  );
+    return (
+        <AuthProvider>
+            <MainLayout />
+        </AuthProvider>
+    );
 }
